@@ -80,9 +80,11 @@ public class FsSourceTask extends SourceTask {
                     log.error("Error reading file from FS: " + metadata.getPath() + ". Keep going...", e);
                 }
             });
+            log.info("Returning {} records", results.size());
             return results;
         }
 
+        log.info("Returning null records");
         return null;
     }
 
