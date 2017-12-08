@@ -9,7 +9,6 @@ import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
 import org.apache.hadoop.hdfs.client.HdfsAdmin;
 import org.apache.hadoop.hdfs.inotify.Event;
-import org.apache.hadoop.hdfs.inotify.EventBatch;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.errors.IllegalWorkerStateException;
 import org.slf4j.Logger;
@@ -106,23 +105,20 @@ public class HdfsFileWatcherPolicy extends AbstractPolicy {
                 DFSInotifyEventInputStream eventStream = admin.getInotifyEventStream();
                 while (fs.getFileStatus(fs.getWorkingDirectory()) != null &&
                         fs.exists(fs.getWorkingDirectory())) {
-                    EventBatch batch = eventStream.poll();
-                    if (batch == null) continue;
-
-                    for (Event event : batch.getEvents()) {
-                        switch (event.getEventType()) {
-                            case CREATE:
-                                enqueue(((Event.CreateEvent) event).getPath());
-                                break;
-                            case APPEND:
-                                enqueue(((Event.AppendEvent) event).getPath());
-                                break;
-                            case CLOSE:
-                                enqueue(((Event.CloseEvent) event).getPath());
-                                break;
-                            default:
-                                break;
-                        }
+                    Event event = eventStream.poll();
+                    if (event == null) continue;
+                    switch (event.getEventType()) {
+                        case CREATE:
+                            enqueue(((Event.CreateEvent) event).getPath());
+                            break;
+                        case APPEND:
+                            enqueue(((Event.AppendEvent) event).getPath());
+                            break;
+                        case CLOSE:
+                            enqueue(((Event.CloseEvent) event).getPath());
+                            break;
+                        default:
+                            break;
                     }
                 }
             } catch (FileNotFoundException fnfe) {
