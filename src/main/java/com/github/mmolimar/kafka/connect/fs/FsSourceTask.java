@@ -63,29 +63,35 @@ public class FsSourceTask extends SourceTask {
 
     @Override
     public List<SourceRecord> poll() throws InterruptedException {
-        while (stop != null && !stop.get() && !policy.hasEnded()) {
-            log.trace("Polling for new data");
+        try {
+            while (stop != null && !stop.get() && !policy.hasEnded()) {
+                log.trace("Polling for new data");
 
-            final List<SourceRecord> results = new ArrayList<>();
-            List<FileMetadata> files = filesToProcess();
-            files.forEach(metadata -> {
-                try {
-                    log.info("Processing records for file {}", metadata);
-                    FileReader reader = policy.offer(metadata, context.offsetStorageReader());
-                    while (reader.hasNext()) {
-                        results.add(convert(metadata, reader.currentOffset(), reader.next()));
+                final List<SourceRecord> results = new ArrayList<>();
+                List<FileMetadata> files = filesToProcess();
+                files.forEach(metadata -> {
+                    try {
+                        log.info("Processing the records in file {}", metadata);
+                        FileReader reader = policy.offer(metadata, context.offsetStorageReader());
+                        while (reader.hasNext()) {
+                            results.add(convert(metadata, reader.currentOffset(), reader.next()));
+                        }
+                    } catch (ConnectException | IOException e) {
+                        //when an exception happens reading a file, the connector continues
+                        log.error("Error reading file from FS: " + metadata.getPath() + ". Keep going...", e);
                     }
-                } catch (ConnectException | IOException e) {
-                    //when an exception happens reading a file, the connector continues
-                    log.error("Error reading file from FS: " + metadata.getPath() + ". Keep going...", e);
-                }
-            });
-            log.info("Returning {} records", results.size());
-            return results;
-        }
+                });
+                log.info("Returning {} records", results.size());
+                return results;
+            }
 
-        log.info("Returning null records");
-        return null;
+            log.info("Returning null records");
+            return null;
+        } catch (Exception e) {
+            log.error("Exception during poll(): " + e.getClass().getName() + ": " + e.getMessage(), e);
+            log.info("Returning null records");
+            return null;
+        }
     }
 
     private List<FileMetadata> filesToProcess() {
