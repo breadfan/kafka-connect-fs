@@ -69,22 +69,23 @@ public class FsSourceTask extends SourceTask {
         while (stop != null && !stop.get() && !policy.hasEnded()) {
             log.trace("Polling for new data");
 
-            final List<SourceRecord> results = new ArrayList<>();
-            List<FileMetadata> files = filesToProcess();
-            files.forEach(metadata -> {
-                try {
-                    log.info("Processing records for file {}", metadata);
-                    FileReader reader = policy.offer(metadata, context.offsetStorageReader());
-                    while (reader.hasNext() && results.size() < batchSize) {
-                        results.add(convert(metadata, reader.currentOffset(), reader.next()));
+                final List<SourceRecord> results = new ArrayList<>();
+                List<FileMetadata> files = filesToProcess();
+                for (int i = 0; (i < files.size()) && (results.size() < batchSize); i++) {
+                    FileMetadata metadata = files.get(i);
+                    try {
+                        log.info("Processing records for file {}", metadata);
+                        FileReader reader = policy.offer(metadata, context.offsetStorageReader());
+                        while (reader.hasNext() && results.size() < batchSize) {
+                            results.add(convert(metadata, reader.currentOffset(), reader.next()));
+                        }
+                    } catch (ConnectException | IOException e) {
+                        //when an exception happens reading a file, the connector continues
+                        log.error("Error reading file from FS: " + metadata.getPath() + ". Keep going...", e);
                     }
-                } catch (ConnectException | IOException e) {
-                    //when an exception happens reading a file, the connector continues
-                    log.error("Error reading file from FS: " + metadata.getPath() + ". Keep going...", e);
                 }
-            });
-            return results;
-        }
+                return results;
+            }
 
         return null;
     }
