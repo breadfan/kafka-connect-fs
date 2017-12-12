@@ -23,6 +23,9 @@ public class FsSourceTaskConfig extends FsSourceConnectorConfig {
     public static final String FILE_READER_CLASS = FILE_READER_PREFIX + "class";
     private static final String FILE_READER_CLASS_DOC = "File reader class to read files from the FS.";
 
+    public static final String BATCH_SIZE = "batch_size";
+    private static final String BATCH_SIZE_DOC = "File reader class to read files from the FS.";
+
     public FsSourceTaskConfig(ConfigDef config, Map<String, String> parsedConfig) {
         super(config, parsedConfig);
     }
@@ -36,7 +39,8 @@ public class FsSourceTaskConfig extends FsSourceConnectorConfig {
                 .define(POLICY_CLASS, ConfigDef.Type.CLASS, ConfigDef.Importance.HIGH, POLICY_CLASS_DOC)
                 .define(POLICY_RECURSIVE, ConfigDef.Type.BOOLEAN, Boolean.TRUE, ConfigDef.Importance.LOW, POLICY_RECURSIVE_DOC)
                 .define(POLICY_REGEXP, ConfigDef.Type.STRING, ".*", ConfigDef.Importance.MEDIUM, POLICY_REGEXP_DOC)
-                .define(FILE_READER_CLASS, ConfigDef.Type.CLASS, ConfigDef.Importance.HIGH, FILE_READER_CLASS_DOC);
+                .define(FILE_READER_CLASS, ConfigDef.Type.CLASS, ConfigDef.Importance.HIGH, FILE_READER_CLASS_DOC)
+                .define(BATCH_SIZE, ConfigDef.Type.INT, ConfigDef.Importance.LOW, BATCH_SIZE_DOC);
     }
 
 }
