@@ -40,7 +40,7 @@ public class FsSourceTaskConfig extends FsSourceConnectorConfig {
                 .define(POLICY_RECURSIVE, ConfigDef.Type.BOOLEAN, Boolean.TRUE, ConfigDef.Importance.LOW, POLICY_RECURSIVE_DOC)
                 .define(POLICY_REGEXP, ConfigDef.Type.STRING, ".*", ConfigDef.Importance.MEDIUM, POLICY_REGEXP_DOC)
                 .define(FILE_READER_CLASS, ConfigDef.Type.CLASS, ConfigDef.Importance.HIGH, FILE_READER_CLASS_DOC)
-                .define(BATCH_SIZE, ConfigDef.Type.INT, ConfigDef.Importance.LOW, BATCH_SIZE_DOC);
+                .define(BATCH_SIZE, ConfigDef.Type.INT, 1000, ConfigDef.Importance.LOW, BATCH_SIZE_DOC);
     }
 
 }
