@@ -74,15 +74,22 @@ public class FsSourceTask extends SourceTask {
                 List<FileMetadata> files = filesToProcess();
                 for (int i = 0; (i < files.size()) && (results.size() < batchSize); i++) {
                     FileMetadata metadata = files.get(i);
+                    FileReader reader = null;
                     try {
                         log.info("Processing records for file {}", metadata);
-                        FileReader reader = policy.offer(metadata, context.offsetStorageReader());
+                        reader = policy.offer(metadata, context.offsetStorageReader());
                         while (reader.hasNext() && results.size() < batchSize) {
                             results.add(convert(metadata, reader.currentOffset(), reader.next()));
                         }
+                        reader.close();
                     } catch (ConnectException | IOException e) {
                         //when an exception happens reading a file, the connector continues
                         log.error("Error reading file from FS: " + metadata.getPath() + ". Keep going...", e);
+                        if(reader != null) {
+                            try {
+                                reader.close();
+                            } catch (Exception ignored) {}
+                        }
                     }
                 }
                 log.info("Returning {} records", results.size());
